@@ -17,11 +17,11 @@ func NewDealer(g *Game) *Dealer {
 	return &Dealer{Game: g}
 }
 
-// UseDecks will cause dealer to use a deck with 52 * n cards for gameplay. 
+// UseDecks will cause dealer to use a deck with 52 * n cards for gameplay.
 func (d *Dealer) UseDecks(n int) {
 	d.deck = cards.New()
 	d.deck.Multiply(n)
-    d.index = 0
+	d.index = 0
 }
 
 // Shuffle will shuffle the deck the dealer is using.
@@ -96,8 +96,8 @@ func (d *Dealer) Clear() {
 // ShowHand will return dealers full hand if all players have taken their turns for
 // the round
 func (d *Dealer) ShowHand() Hand {
-    if d.Game.PlayersPlayed() {
-        return d.hand
-    }
-    return d.hand[1:]
+	if d.Game.PlayersPlayed() {
+		return d.hand
+	}
+	return d.hand[1:]
 }

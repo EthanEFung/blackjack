@@ -6,9 +6,9 @@ import (
 
 // Player is a struct representing an end user in the game.
 type Player struct {
-    // Name is the name of the player.
+	// Name is the name of the player.
 	Name string
-    // Hand is the slice of cards the user owns in the given round.
+	// Hand is the slice of cards the user owns in the given round.
 	Hand Hand
 }
 

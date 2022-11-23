@@ -5,19 +5,19 @@ import (
 )
 
 var cardValues = map[cards.Rank]int{
-    cards.Two:   2,
-    cards.Three: 3,
-    cards.Four:  4,
-    cards.Five:  5,
-    cards.Six:   6,
-    cards.Seven: 7,
-    cards.Eight: 8,
-    cards.Nine:  9,
-    cards.Ten:   10,
-    cards.Jack:  10,
-    cards.Queen: 10,
-    cards.King:  10,
-    cards.Ace:   11,
+	cards.Two:   2,
+	cards.Three: 3,
+	cards.Four:  4,
+	cards.Five:  5,
+	cards.Six:   6,
+	cards.Seven: 7,
+	cards.Eight: 8,
+	cards.Nine:  9,
+	cards.Ten:   10,
+	cards.Jack:  10,
+	cards.Queen: 10,
+	cards.King:  10,
+	cards.Ace:   11,
 }
 
 // Hand is a slice of cards.

@@ -124,7 +124,7 @@ func TestDealerClear(t *testing.T) {
 	game.AddPlayer(b)
 	game.AddPlayer(c)
 
-    dealer.UseDecks(1)
+	dealer.UseDecks(1)
 
 	dealer.Deal(2, game.Players)
 
@@ -197,29 +197,28 @@ func TestDealerEvaluate(t *testing.T) {
 }
 
 func TestDealerShowHand(t *testing.T) {
-    game := New()
+	game := New()
 
-    game.AddPlayer(NewPlayer("a"))
+	game.AddPlayer(NewPlayer("a"))
 
-    
-    game.Dealer.hand = Hand{
-        {Rank: cards.Ace},
-        {Rank: cards.Jack},
-    }
+	game.Dealer.hand = Hand{
+		{Rank: cards.Ace},
+		{Rank: cards.Jack},
+	}
 
-    game.Start()
+	game.Start()
 
-    shown := game.Dealer.ShowHand() 
+	shown := game.Dealer.ShowHand()
 
-    if len(shown) != 1 {
-        t.Fatalf("expected that dealer to only show one card if players have not played but shows %d", len(shown))
-    }
+	if len(shown) != 1 {
+		t.Fatalf("expected that dealer to only show one card if players have not played but shows %d", len(shown))
+	}
 
-    game.Dealer.Stay()
+	game.Dealer.Stay()
 
-    shown = game.Dealer.ShowHand()
+	shown = game.Dealer.ShowHand()
 
-    if len(shown) != 2 {
-        t.Fatalf("expected that dealer to only show two card if all players have played but shows %d", len(shown))
-    }
+	if len(shown) != 2 {
+		t.Fatalf("expected that dealer to only show two card if all players have played but shows %d", len(shown))
+	}
 }

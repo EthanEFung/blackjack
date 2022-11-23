@@ -3,7 +3,7 @@ package blackjack
 import (
 	"testing"
 
-    "github.com/ethanefung/cards"
+	"github.com/ethanefung/cards"
 )
 
 func TestGame(t *testing.T) {
@@ -74,53 +74,52 @@ func TestRemovePlayer(t *testing.T) {
 }
 
 func TestGameState(t *testing.T) {
-    game := New()
+	game := New()
 
-    a, b := NewPlayer("a"), NewPlayer("b")
-    dealer := game.Dealer
+	a, b := NewPlayer("a"), NewPlayer("b")
+	dealer := game.Dealer
 
-    game.AddPlayer(a)
-    game.AddPlayer(b)
+	game.AddPlayer(a)
+	game.AddPlayer(b)
 
-    a.Hand = Hand{
-        {Rank: cards.Ace},
-        {Rank: cards.Jack},
-    }
+	a.Hand = Hand{
+		{Rank: cards.Ace},
+		{Rank: cards.Jack},
+	}
 
-    b.Hand = Hand{
-        {Rank: cards.Seven},
-        {Rank: cards.Seven},
-        {Rank: cards.Eight},
-    }
+	b.Hand = Hand{
+		{Rank: cards.Seven},
+		{Rank: cards.Seven},
+		{Rank: cards.Eight},
+	}
 
-    dealer.hand = Hand{
-        {Rank: cards.Seven},
-        {Rank: cards.King},
-    }
+	dealer.hand = Hand{
+		{Rank: cards.Seven},
+		{Rank: cards.King},
+	}
 
-    state := game.State()
+	state := game.State()
 
-    states := state.Players
+	states := state.Players
 
-    if states[a].State != Win {
-        t.Fatalf("expected that player 'a' to have won, but players state was %s", states[a].State.String())
-    }
+	if states[a].State != Win {
+		t.Fatalf("expected that player 'a' to have won, but players state was %s", states[a].State.String())
+	}
 
-    if states[b].State != Bust {
-        t.Fatalf("expected that player 'b' to have busted, but players state was %s", states[b].State.String())
-    }
+	if states[b].State != Bust {
+		t.Fatalf("expected that player 'b' to have busted, but players state was %s", states[b].State.String())
+	}
 
-    game.Start()
-    state = game.State()
+	game.Start()
+	state = game.State()
 
-    states = state.Players
+	states = state.Players
 
-    if states[a].State.String() != "Undetermined" {
-        t.Fatalf("expected that player 'a's state to be Undetermined, but players state was %s", states[a].State.String())
-    }
+	if states[a].State.String() != "Undetermined" {
+		t.Fatalf("expected that player 'a's state to be Undetermined, but players state was %s", states[a].State.String())
+	}
 
-    if states[b].State.String() != "Undetermined" {
-        t.Fatalf("expected that player 'b' to be Undetermined, but players state was %s", states[b].State.String())
-    }
+	if states[b].State.String() != "Undetermined" {
+		t.Fatalf("expected that player 'b' to be Undetermined, but players state was %s", states[b].State.String())
+	}
 }
-    

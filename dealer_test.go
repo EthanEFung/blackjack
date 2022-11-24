@@ -68,7 +68,7 @@ func TestNewDealerGamePlay(t *testing.T) {
 
 	game.Start()
 
-	dealer.Hit(a)
+	dealer.Hit()
 
 	if len(a.Hand) != 3 {
 		t.Fatalf("expected %v's hand to have 3 cards, but currently has %d", a.String(), len(a.Hand))
@@ -200,14 +200,12 @@ func TestDealerShowHand(t *testing.T) {
 	game := New()
 
 	game.AddPlayer(NewPlayer("a"))
-
 	game.Dealer.hand = Hand{
 		{Rank: cards.Ace},
 		{Rank: cards.Jack},
 	}
 
 	game.Start()
-
 	shown := game.Dealer.ShowHand()
 
 	if len(shown) != 1 {
@@ -215,10 +213,100 @@ func TestDealerShowHand(t *testing.T) {
 	}
 
 	game.Dealer.Stay()
-
 	shown = game.Dealer.ShowHand()
 
 	if len(shown) != 2 {
 		t.Fatalf("expected that dealer to only show two card if all players have played but shows %d", len(shown))
 	}
 }
+
+func TestDealerBet(t *testing.T) {
+    game := New()
+
+    a := NewPlayer("a")
+    game.Dealer.Bet(a, 2)
+
+    if a.Wager != 2 {
+        t.Fatalf("expected the dealer to set players a's wager to 2 but wager is %d", a.Wager)
+    }
+}
+
+func TestDealerSurrender(t *testing.T) {
+    game := New()
+
+    a := NewPlayer("a")
+    game.AddPlayer(a)
+    game.Dealer.Bet(a, 2)
+
+    game.Start()
+    game.Dealer.Surrender()
+    if a.Winnings != -1 {
+        t.Fatalf("expected half the wager of player a to be subtracted from winnings, but player's winnings were %d", a.Winnings)
+
+    }
+    if a.Wager != 0 {
+        t.Fatalf("expected after surrender that player a's wager would be zero but wager was %d", a.Wager)
+    }
+}
+
+func TestDealerDouble(t *testing.T) {
+    game := New()
+    a := NewPlayer("a")
+    game.AddPlayer(a)
+    game.Dealer.UseDecks(1)
+    game.Dealer.Bet(a, 2)
+    game.Dealer.Deal(2, game.Players)
+    game.Start()
+    
+    game.Dealer.Double()
+
+    if a.Wager != 4 {
+        t.Fatalf("expected the players wager to have doubled but got a wager of %d", a.Wager)
+    }
+
+    if len(a.Hand) != 3 {
+        t.Fatalf("expected having doubled, the dealer to have dealt another card to player but player has %d cards", len(a.Hand))
+    }
+}
+
+func TestDealerCollect(t *testing.T) {
+    game := New()
+    a, b, c := NewPlayer("a"), NewPlayer("b"), NewPlayer("c")
+    game.AddPlayer(a)
+    game.AddPlayer(b)
+    game.AddPlayer(c)
+    game.Dealer.Bet(a, 2)
+    game.Dealer.Bet(b, 2)
+    game.Dealer.Bet(c, 2)
+
+    a.Hand = Hand{
+        {Rank: cards.Ace},
+        {Rank: cards.Jack},
+    }
+
+    b.Hand = Hand{
+        {Rank: cards.Jack},
+        {Rank: cards.Six},
+    }
+    c.Hand = Hand{
+        {Rank: cards.Jack},
+        {Rank: cards.Seven},
+    }
+    game.Dealer.hand = Hand{
+        {Rank: cards.Jack},
+        {Rank: cards.Seven},
+    }
+
+    game.Dealer.Collect()
+    if a.Winnings != 2 {
+        t.Fatalf("expected player a who has won to have 2 winnings, but has %d", a.Winnings)
+    }
+    if b.Winnings != -2 {
+        t.Fatalf("expected player b who has lost to have -2 winnings, but has %d", b.Winnings)
+    }
+    if c.Winnings != 0 {
+        t.Fatalf("expected player c who has pushed to have 0 winnings, but has %d", b.Winnings)
+    }
+
+}
+

@@ -45,12 +45,12 @@ func (d *Dealer) Deal(count int, p *PlayersList) {
 	}
 }
 
-// Hit appends one card from the dealers deck to the specified players hand if it is
-// the player's turn
-func (d *Dealer) Hit(p *Player) bool {
-	if p != d.Game.Current.Head {
+// Hit will add a card for to the current players hand. 
+func (d *Dealer) Hit() bool {
+	if d.Game.Current == nil {
 		return false
 	}
+	p := d.Game.Current.Head
 	p.Hand.Draw(d.deck[d.index])
 	d.index++
 	return true
@@ -60,6 +60,64 @@ func (d *Dealer) Hit(p *Player) bool {
 // list or changes current to null.
 func (d *Dealer) Stay() {
 	d.Game.EndPlayerTurn()
+}
+
+// Surrender will first subtract half of the wager amount from the current players
+// winnings and set the bet amount to zero. Surrender will also end the players turn.
+func (d *Dealer) Surrender() bool {
+	if d.Game.Current == nil {
+		return false
+	}
+	player := d.Game.Current.Head
+	half := player.Wager / 2
+	d.Game.Current.Head.Winnings -= half
+	d.Game.Current.Head.Wager = 0
+	d.Game.EndPlayerTurn()
+	return true
+}
+
+// Double will multiply the current players wager by 2 and hit if the player has only
+// two cards.
+func (d *Dealer) Double() bool {
+	if d.Game.Current == nil {
+		return false
+	}
+	player := d.Game.Current.Head
+	if len(player.Hand) > 2 {
+		return false
+	}
+	d.Game.Current.Head.Wager *= 2
+	d.Hit()
+	return true
+}
+
+// Bet will change the Wager of the player to the specified amount.
+func (d *Dealer) Bet(p *Player, wager int) bool {
+	if p == nil {
+		return false
+	}
+	p.Wager = wager
+	return true
+}
+
+// Collect resolves all game Players Winnings based on the state of the game.
+func (d *Dealer) Collect() {
+	states := d.Game.State().Players
+	for curr := d.Game.Players; curr != nil; curr = curr.Tail {
+		p := curr.Head
+		switch states[p].State {
+		case Push:
+			continue
+		case Win:
+			curr.Head.Winnings += curr.Head.Wager
+		case Lose:
+			curr.Head.Winnings -= curr.Head.Wager
+		case Bust:
+			curr.Head.Winnings -= curr.Head.Wager
+		default:
+			continue
+		}
+	}
 }
 
 // Play appends cards to the dealers hand as long as the value of the dealers hand is
@@ -89,7 +147,6 @@ func (d *Dealer) Clear() {
 		curr.Head.Hand = Hand{}
 		curr = curr.Tail
 	}
-
 	d.hand = Hand{}
 }
 

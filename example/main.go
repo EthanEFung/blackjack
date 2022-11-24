@@ -6,8 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"strings"
-    "strconv"
 	"time"
 
 	"github.com/ethanefung/blackjack"
@@ -71,12 +71,12 @@ func printState(state blackjack.GameState, g *blackjack.Game) {
 }
 
 func readStdin(reader *bufio.Reader) (string, error) {
-    text, err := reader.ReadString('\n')
-    if err != nil {
-        return "", err
-    }
-    input := strings.TrimSpace(text)
-    return input, nil
+	text, err := reader.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+	input := strings.TrimSpace(text)
+	return input, nil
 }
 
 func main() {
@@ -88,11 +88,11 @@ func main() {
 	dealer := game.Dealer
 
 	for {
-        input, err := readStdin(reader)
-        if err != nil {
-            fmt.Println("Couldn't read your input")
-            continue
-        }
+		input, err := readStdin(reader)
+		if err != nil {
+			fmt.Println("Couldn't read your input")
+			continue
+		}
 		if input == "" && game.Players == nil {
 			fmt.Print("Any name would suffice: ")
 			continue
@@ -102,7 +102,7 @@ func main() {
 
 		player := blackjack.NewPlayer(input)
 		game.AddPlayer(player)
-        fmt.Printf("Hi %s, shall we start? Type another name to add a player, or press enter to start: ", input)
+		fmt.Printf("Hi %s, shall we start? Type another name to add a player, or press enter to start: ", input)
 	}
 
 	dealer.UseDecks(3)
@@ -110,27 +110,27 @@ func main() {
 	fmt.Println("Let's begin.")
 
 	for {
-        fmt.Printf("First, everyone place bets\n")
+		fmt.Printf("First, everyone place bets\n")
 
-        for curr := game.Players; curr != nil; curr = curr.Tail {
-            player := curr.Head
+		for curr := game.Players; curr != nil; curr = curr.Tail {
+			player := curr.Head
 
-            fmt.Printf("%s current winnings: %d\nwager: ", player.String(), player.Winnings) 
-            for {
-                input, err := readStdin(reader)
-                if err != nil {
-                    fmt.Printf("trouble reading your wager: ")
-                    continue
-                }
-                bet, err := strconv.Atoi(input)
-                if err != nil {
-                    fmt.Printf("please enter a valid integer: ")
-                    continue
-                }
-                dealer.Bet(player, bet)
-                break
-            }
-        }
+			fmt.Printf("%s current winnings: %d\nwager: ", player.String(), player.Winnings)
+			for {
+				input, err := readStdin(reader)
+				if err != nil {
+					fmt.Printf("trouble reading your wager: ")
+					continue
+				}
+				bet, err := strconv.Atoi(input)
+				if err != nil {
+					fmt.Printf("please enter a valid integer: ")
+					continue
+				}
+				dealer.Bet(player, bet)
+				break
+			}
+		}
 
 		dealer.Clear()
 		dealer.Deal(2, game.Players)
@@ -141,9 +141,9 @@ func main() {
 			clearTerminal()
 			printState(game.State(), game)
 			fmt.Print(game.Current.Head.Name, ", (h)it or (s)tay: ")
-            option, err := readStdin(reader)
+			option, err := readStdin(reader)
 			if err != nil {
-                fmt.Println("couldn't read your input")
+				fmt.Println("couldn't read your input")
 			}
 			if option == "h" {
 				dealer.Hit()
@@ -154,7 +154,7 @@ func main() {
 		}
 
 		dealer.Play()
-        dealer.Collect()
+		dealer.Collect()
 		clearTerminal()
 		printState(game.State(), game)
 		fmt.Print("Again? Press enter to continue or type 'n + <enter>' to end: ")

@@ -45,7 +45,7 @@ func (d *Dealer) Deal(count int, p *PlayersList) {
 	}
 }
 
-// Hit will add a card for to the current players hand. 
+// Hit will add a card for to the current players hand.
 func (d *Dealer) Hit() bool {
 	if d.Game.Current == nil {
 		return false

@@ -22,30 +22,55 @@ const (
 	Push
 )
 
+type ListType int
+
+const (
+	DefaultList ListType = iota
+	SplitList
+)
+
 //go:generate stringer -type=WinType
 
 // WinState is the state of a player or dealer and the value of the hand.
 type WinState struct {
 	// Value is the numeric value of the hand the state represents.
 	Value int
-	// State is the WinType of the player or dealer.
-	State WinType
+	// Type is the WinType of the player or dealer.
+	Type WinType
 }
 
-// GameState is the aggregate of players' and dealer's winstates.
+// GameState is the aggregate of players' and dealer's winstates
+/*
+GameState now has to change because it no longer is tied to the Player
+But by the list value of the player. This is because a player should be
+able to play multiple hands. So how do we represent the states of each hand?
+*/
 type GameState struct {
 	// Dealer is the WinState of the game's dealer.
 	Dealer WinState
-	// Players is a map of Player WinStates.
-	Players map[*Player]WinState
+	// Players is a map each win state for each hand of the player
+	Players map[*Player][]WinState
 }
 
 // PlayersList is a link list of players.
 type PlayersList struct {
 	// Head will always represent a Player struct.
-	Head *Player
+	Head *ListVal
 	// Tail will always represent another PlayerList.
 	Tail *PlayersList
+	// Type is whether this list represents the original list or a split
+	Type string
+}
+
+type ListVal struct {
+	// Player represents the owner of the hand.
+	Player *Player
+	// Hand represents the cards that dealer is comparing.
+	Hand Hand
+	// Wager represents how much the hand is worth to the players winnings.
+	Wager int
+	// Split represents whether this is the base ListVal or was added during the game.
+	Split bool
 }
 
 // Len returns the length of the players list.
@@ -74,40 +99,53 @@ func New() *Game {
 	return game
 }
 
-// AddPlayer appends the specified player to the end of Game.Players.
+// AddPlayer appends a list value to the end of Game.Players.
+//
 func (g *Game) AddPlayer(p *Player) {
+	// add player will create a new ListVal for the player
+	val := &ListVal{Player: p}
 	if g.Players == nil {
-		g.Players = &PlayersList{
-			Head: p,
-		}
+		g.Players = &PlayersList{Head: val}
 	} else {
-		// TODO: optimize
 		curr := g.Players
 		for curr.Tail != nil {
 			curr = curr.Tail
 		}
-		curr.Tail = &PlayersList{
-			Head: p,
+		curr.Tail = &PlayersList{Head: val}
+	}
+}
+
+// RemovePlayer removes all list values with the specified player reference
+func (g *Game) RemovePlayer(p *Player) {
+    for curr := g.Players; curr != nil && curr.Head.Player == p; curr = curr.Tail {
+		g.Players = curr.Tail
+	}
+
+    for curr := g.Players; curr.Tail != nil; curr = curr.Tail {
+		if curr.Tail.Head.Player == p && curr.Tail.Tail == nil {
+			curr.Tail = nil
+			break
+		} else if curr.Tail.Head.Player == p {
+			curr.Tail = curr.Tail.Tail
 		}
 	}
 }
 
-// RemovePlayer removes the player from the Game.Players list.
-func (g *Game) RemovePlayer(p *Player) {
+// RemoveListVal removes the specified node within the players list.
+func (g *Game) RemoveListVal(val *ListVal) {
 	curr := g.Players
-	for curr.Head == p {
-		curr = curr.Tail
-		g.Players = curr
+	if curr != nil && curr.Head == val {
+		g.Players = curr.Tail
+		return
 	}
-
-	for curr.Tail != nil {
-		if curr.Tail.Head == p && curr.Tail.Tail == nil {
+	for curr = g.Players; curr.Tail != nil; curr = curr.Tail {
+		if curr.Tail.Head == val && curr.Tail.Tail == nil {
 			curr.Tail = nil
-			break
-		} else if curr.Tail.Head == p {
+			return
+		} else if curr.Tail.Head == val {
 			curr.Tail = curr.Tail.Tail
+			return
 		}
-		curr = curr.Tail
 	}
 }
 
@@ -140,33 +178,36 @@ func (g *Game) State() GameState {
 	dealerState := WinState{}
 	// evaluate dealer's hand
 	if dealer.hand.Value() > 21 {
-		dealerState.State = Bust
+		dealerState.Type = Bust
 	} else if done {
 		dealerState.Value = dealer.hand.Value()
 	}
 
-	winStates := make(map[*Player]WinState, g.Players.Len())
+	winStates := make(map[*Player][]WinState, g.Players.Len())
 
 	for list := g.Players; list != nil; list = list.Tail {
-		player := list.Head
-		winState := WinState{Value: player.Hand.Value()}
-		playerHand, dealerHand := player.Hand.Value(), dealer.hand.Value()
+		listVal := list.Head
+        player := listVal.Player
+        hand := listVal.Hand
+		winState := WinState{Value: hand.Value()}
+		playerHand, dealerHand := hand.Value(), dealer.hand.Value()
+        
 		if !done {
-			winStates[player] = winState
+			winStates[player] =  append(winStates[player], winState) 
 			continue
 		}
 		// game is done
 		if playerHand > 21 {
-			winState.State = Bust
+			winState.Type = Bust
 		} else if playerHand == dealerHand {
-			winState.State = Push
+			winState.Type = Push
 		} else if playerHand > dealerHand || dealerHand > 21 {
-			winState.State = Win
+			winState.Type = Win
 		} else {
-			winState.State = Lose
+			winState.Type = Lose
 		}
 
-		winStates[player] = winState
+		winStates[player] = append(winStates[player], winState)
 	}
 
 	return GameState{

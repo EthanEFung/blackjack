@@ -8,10 +8,6 @@ import (
 type Player struct {
 	// Name is the name of the player.
 	Name string
-	// Hand is the slice of cards the user owns in the given round.
-	Hand Hand
-	// Wager is the current bet size for the given round
-	Wager int
 	// Winnings is the current number of bets the user has currently
 	Winnings int
 }

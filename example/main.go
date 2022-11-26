@@ -35,8 +35,8 @@ func clearTerminal() {
 func printState(state blackjack.GameState, g *blackjack.Game) {
 	b := strings.Builder{}
 	b.WriteString("Dealer: ")
-	if g.PlayersPlayed() && state.Dealer.State != blackjack.Undetermined {
-		b.WriteString(state.Dealer.State.String())
+	if g.PlayersPlayed() && state.Dealer.Type != blackjack.Undetermined {
+		b.WriteString(state.Dealer.Type.String())
 	}
 
 	b.WriteRune('\n')
@@ -52,14 +52,14 @@ func printState(state blackjack.GameState, g *blackjack.Game) {
 	b.WriteRune('\n')
 
 	for curr := g.Players; curr != nil; curr = curr.Tail {
-		p := curr.Head
-		b.WriteString(p.String() + ": ")
+		val := curr.Head
+		b.WriteString(val.Player.String() + ": ")
 		if g.PlayersPlayed() {
-			b.WriteString(state.Players[p].State.String())
+			b.WriteString(state.Players[val.Player][0].Type.String())
 		}
 		b.WriteRune('\n')
 
-		for _, card := range p.Hand {
+		for _, card := range val.Hand {
 			b.WriteString("    ")
 			b.WriteString(card.String())
 			b.WriteRune('\n')
@@ -113,9 +113,9 @@ func main() {
 		fmt.Printf("First, everyone place bets\n")
 
 		for curr := game.Players; curr != nil; curr = curr.Tail {
-			player := curr.Head
+			val := curr.Head
 
-			fmt.Printf("%s current winnings: %d\nwager: ", player.String(), player.Winnings)
+			fmt.Printf("%s current winnings: %d\nwager: ", val.Player.String(), val.Player.Winnings)
 			for {
 				input, err := readStdin(reader)
 				if err != nil {
@@ -127,7 +127,7 @@ func main() {
 					fmt.Printf("please enter a valid integer: ")
 					continue
 				}
-				dealer.Bet(player, bet)
+				dealer.Bet(val, bet)
 				break
 			}
 		}
@@ -140,7 +140,7 @@ func main() {
 		for !game.PlayersPlayed() {
 			clearTerminal()
 			printState(game.State(), game)
-			fmt.Print(game.Current.Head.Name, ", (h)it or (s)tay: ")
+			fmt.Print(game.Current.Head.Player.Name, ", (h)it or (s)tay: ")
 			option, err := readStdin(reader)
 			if err != nil {
 				fmt.Println("couldn't read your input")

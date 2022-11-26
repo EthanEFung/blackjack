@@ -17,7 +17,7 @@ func TestGame(t *testing.T) {
 		t.Fatalf("Expected game to only one player but has %d", game.Players.Len())
 	}
 	curr := game.Players
-	if curr.Head != a {
+	if curr.Head.Player != a {
 		t.Fatalf("Expected player 'a' to be the first player, but was not")
 	}
 	game.AddPlayer(b)
@@ -25,14 +25,14 @@ func TestGame(t *testing.T) {
 		t.Fatalf("Expected game to have two players but has %d", game.Players.Len())
 	}
 	curr = curr.Tail
-	if curr.Head != b {
+	if curr.Head.Player != b {
 		t.Fatalf("Expected player 'b' to be the second player, but was not")
 	}
 }
 
 func TestRemovePlayer(t *testing.T) {
 	game := New()
-	a, b, c := &Player{}, &Player{}, &Player{}
+	a, b, c := NewPlayer("a"), NewPlayer("b"), NewPlayer("c")
 
 	game.AddPlayer(a)
 	game.AddPlayer(b)
@@ -82,12 +82,16 @@ func TestGameState(t *testing.T) {
 	game.AddPlayer(a)
 	game.AddPlayer(b)
 
-	a.Hand = Hand{
+    val := game.Players
+
+	val.Head.Hand = Hand{
 		{Rank: cards.Ace},
 		{Rank: cards.Jack},
 	}
 
-	b.Hand = Hand{
+    val = val.Tail
+
+	val.Head.Hand = Hand{
 		{Rank: cards.Seven},
 		{Rank: cards.Seven},
 		{Rank: cards.Eight},
@@ -102,12 +106,12 @@ func TestGameState(t *testing.T) {
 
 	states := state.Players
 
-	if states[a].State != Win {
-		t.Fatalf("expected that player 'a' to have won, but players state was %s", states[a].State.String())
+	if states[a][0].Type != Win {
+		t.Fatalf("expected that player 'a' to have won, but players state was %s", states[a][0].Type.String())
 	}
 
-	if states[b].State != Bust {
-		t.Fatalf("expected that player 'b' to have busted, but players state was %s", states[b].State.String())
+	if states[b][0].Type != Bust {
+        t.Fatalf("expected that player 'b' to have busted, but players state was %s", states[b][0].Type.String())
 	}
 
 	game.Start()
@@ -115,11 +119,11 @@ func TestGameState(t *testing.T) {
 
 	states = state.Players
 
-	if states[a].State.String() != "Undetermined" {
-		t.Fatalf("expected that player 'a's state to be Undetermined, but players state was %s", states[a].State.String())
+	if states[a][0].Type.String() != "Undetermined" {
+		t.Fatalf("expected that player 'a's state to be Undetermined, but players state was %s", states[a][0].Type.String())
 	}
 
-	if states[b].State.String() != "Undetermined" {
-		t.Fatalf("expected that player 'b' to be Undetermined, but players state was %s", states[b].State.String())
+	if states[b][0].Type.String() != "Undetermined" {
+		t.Fatalf("expected that player 'b' to be Undetermined, but players state was %s", states[b][0].Type.String())
 	}
 }

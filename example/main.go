@@ -51,12 +51,22 @@ func printState(state blackjack.GameState, g *blackjack.Game) {
 	}
 	b.WriteRune('\n')
 
+    var i int
+    var last *blackjack.Player
 	for curr := g.Players; curr != nil; curr = curr.Tail {
 		val := curr.Head
 		b.WriteString(val.Player.String() + ": ")
 		if g.PlayersPlayed() {
-			b.WriteString(state.Players[val.Player][0].Type.String())
-		}
+            if last == val.Player {
+                i++
+            } else {
+                last = val.Player
+                i = 0
+            }
+			b.WriteString(state.Players[val.Player][i].Type.String())
+		} else if curr.Head == g.Current.Head {
+            b.WriteString("Playing")
+        }
 		b.WriteRune('\n')
 
 		for _, card := range val.Hand {
@@ -140,6 +150,7 @@ func main() {
 		for !game.PlayersPlayed() {
 			clearTerminal()
 			printState(game.State(), game)
+            
 			fmt.Print(game.Current.Head.Player.Name, ", (h)it or (s)tay: ")
 			option, err := readStdin(reader)
 			if err != nil {
@@ -149,7 +160,13 @@ func main() {
 				dealer.Hit()
 			} else if option == "s" {
 				dealer.Stay()
-			}
+			} else if option == "d" {
+                dealer.Double()
+            } else if option == "su" {
+                dealer.Surrender()
+            } else if option == "sp" {
+                dealer.Split()
+            }
 			dealer.Evaluate()
 		}
 

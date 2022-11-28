@@ -56,3 +56,14 @@ func (h *Hand) HasAce() bool {
 	}
 	return false
 }
+
+func (h *Hand) HasPair() bool {
+	ranks := make(map[cards.Rank]bool)
+	for _, card := range *h {
+		if ranks[card.Rank] {
+			return true
+		}
+		ranks[card.Rank] = true
+	}
+	return false
+}

@@ -313,6 +313,7 @@ func TestDealerCollect(t *testing.T) {
 	}
 
 	val = val.Tail
+
 	val.Head.Hand = Hand{
 		{Rank: cards.Jack},
 		{Rank: cards.Seven},
@@ -333,5 +334,175 @@ func TestDealerCollect(t *testing.T) {
 	}
 	if c.Winnings != 0 {
 		t.Fatalf("expected player c who has pushed to have 0 winnings, but has %d", b.Winnings)
+	}
+}
+
+func TestDealerSplitAndCollect(t *testing.T) {
+	game := New()
+	a := NewPlayer("a")
+	game.AddPlayer(a)
+
+	game.Dealer.UseDecks(1)
+	game.Dealer.Shuffle(2)
+
+	game.Start()
+
+	game.Dealer.Bet(game.Players.Head, 2)
+
+	aceOfSpades := cards.Card{Rank: cards.Ace, Suit: cards.Spades}
+	aceOfHearts := cards.Card{Rank: cards.Ace, Suit: cards.Hearts}
+
+	game.Players.Head.Hand = Hand{aceOfSpades, aceOfHearts}
+
+	game.Dealer.Split()
+
+	if game.Current.Head.Hand.Value() != 19 {
+		t.Fatalf("something happened with the current test setup, expected the current players hand to have a value of 13 but instead was: %d", game.Current.Head.Hand.Value())
+	}
+	game.Dealer.Stay()
+
+	if game.Current.Head.Hand.Value() != 13 {
+		t.Fatalf("something happened with the current test setup, expected the current players hand to have a value of 19 but instead was: %d", game.Current.Head.Hand.Value())
+	}
+
+	game.Dealer.Stay()
+
+	game.Dealer.Play()
+
+	game.Dealer.Collect()
+
+	dealerHand := game.Dealer.ShowHand()
+
+	if dealerHand.Value() != 20 {
+		t.Fatalf("something happened with the current test setup, expected the dealers hand to have a value of 20 but instead was: %d", dealerHand.Value())
+	}
+
+	if game.Players.Head.Player.Winnings != -4 {
+		t.Fatalf("expected players hands to result in -4 winnings (lost both) but instead was %d", game.Players.Head.Player.Winnings)
+	}
+}
+
+func TestDealerSplit(t *testing.T) {
+	game := New()
+	a, b := NewPlayer("a"), NewPlayer("b")
+	game.AddPlayer(a)
+	game.AddPlayer(b)
+
+	game.Dealer.UseDecks(1)
+	game.Dealer.Shuffle(0)
+
+	game.Start()
+
+	aceOfSpades := cards.Card{Rank: cards.Ace, Suit: cards.Spades}
+	aceOfHearts := cards.Card{Rank: cards.Ace, Suit: cards.Hearts}
+
+	game.Players.Head.Hand = Hand{
+		aceOfSpades,
+		aceOfHearts,
+	}
+
+	game.Dealer.Split()
+
+	if len(game.Current.Head.Hand) != 2 {
+		t.Fatalf("expected after split that the current players hand be dealt one card to the first hand but currently has %d", len(game.Current.Head.Hand))
+	}
+
+	for _, card := range game.Current.Head.Hand {
+		if card == aceOfHearts {
+			t.Fatalf("expected that the current players hand to be split, but the hand contained a card it should not have")
+		}
+	}
+
+	game.Dealer.Stay()
+
+	if len(game.Current.Head.Hand) != 2 {
+		t.Fatalf("expected after split that the current players hand be dealt one card to their second hand but currently has %d", len(game.Current.Head.Hand))
+	}
+
+	var hasAceOfHearts bool
+	for _, card := range game.Current.Head.Hand {
+		if card == aceOfHearts {
+			hasAceOfHearts = true
+		}
+	}
+
+	if !hasAceOfHearts {
+		t.Fatalf("expected hand to have an ace of hearts because the hand was split by the player before")
+	}
+
+	if game.Current.Head.Player != a {
+		t.Fatalf("expected the hand to be associated with player a but was not")
+	}
+
+	game.Dealer.Stay()
+
+	if game.Current.Head.Player != b {
+		t.Fatalf("expectdd that the split still keeps reference to the previous tail, but did not")
+	}
+}
+
+func TestDealerNoSplit(t *testing.T) {
+	game := New()
+	a, b := NewPlayer("a"), NewPlayer("b")
+	game.AddPlayer(a)
+	game.AddPlayer(b)
+
+	game.Dealer.UseDecks(1)
+	game.Dealer.Shuffle(0)
+
+	game.Start()
+
+	game.Dealer.Deal(2, game.Players)
+
+	game.Dealer.Split()
+
+	if game.Players.Len() > 2 {
+		t.Fatalf("expected that on a hand without a pair, split would be unsuccessful")
+	}
+}
+
+func TestDealerResetTable(t *testing.T) {
+	game := New()
+	a, b := NewPlayer("a"), NewPlayer("b")
+	game.AddPlayer(a)
+	game.AddPlayer(b)
+
+	game.Dealer.UseDecks(1)
+	game.Dealer.Shuffle(0)
+
+	eightOfSpades := cards.Card{Rank: cards.Eight, Suit: cards.Spades}
+	eightOfClubs := cards.Card{Rank: cards.Eight, Suit: cards.Clubs}
+	aceOfSpades := cards.Card{Rank: cards.Ace, Suit: cards.Spades}
+
+	game.Start()
+
+	firstPlayerVal := game.Current.Head
+	secondPlayerVal := game.Current.Tail.Head
+
+	game.Current.Head.Hand = Hand{
+		eightOfSpades,
+		eightOfClubs,
+	}
+
+	game.Current.Tail.Head.Hand = Hand{
+		eightOfClubs,
+		aceOfSpades,
+	}
+
+	game.Dealer.Split()
+
+	if game.Current.Tail.Head == secondPlayerVal {
+		t.Fatalf("expected that a dealer splitting would result in the insertion of a new list val but did not happen")
+	}
+
+	game.Dealer.Clear()
+	game.Dealer.ResetTable()
+
+	if game.Current.Head != firstPlayerVal {
+		t.Fatalf("expected that the first players default list val to remain but the reference was lost")
+	}
+
+	if game.Current.Tail.Head != secondPlayerVal {
+		t.Fatalf("expected that after the dealer.ResetTable is called that the split list val would be removed but it was not")
 	}
 }

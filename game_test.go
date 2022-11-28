@@ -82,14 +82,14 @@ func TestGameState(t *testing.T) {
 	game.AddPlayer(a)
 	game.AddPlayer(b)
 
-    val := game.Players
+	val := game.Players
 
 	val.Head.Hand = Hand{
 		{Rank: cards.Ace},
 		{Rank: cards.Jack},
 	}
 
-    val = val.Tail
+	val = val.Tail
 
 	val.Head.Hand = Hand{
 		{Rank: cards.Seven},
@@ -111,7 +111,7 @@ func TestGameState(t *testing.T) {
 	}
 
 	if states[b][0].Type != Bust {
-        t.Fatalf("expected that player 'b' to have busted, but players state was %s", states[b][0].Type.String())
+		t.Fatalf("expected that player 'b' to have busted, but players state was %s", states[b][0].Type.String())
 	}
 
 	game.Start()

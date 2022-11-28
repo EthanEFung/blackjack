@@ -69,7 +69,7 @@ type ListVal struct {
 	Hand Hand
 	// Wager represents how much the hand is worth to the players winnings.
 	Wager int
-	// Split represents whether this is the base ListVal or was added during the game.
+	// Split represents whether this ListVal was added during the game.
 	Split bool
 }
 
@@ -117,11 +117,11 @@ func (g *Game) AddPlayer(p *Player) {
 
 // RemovePlayer removes all list values with the specified player reference
 func (g *Game) RemovePlayer(p *Player) {
-    for curr := g.Players; curr != nil && curr.Head.Player == p; curr = curr.Tail {
+	for curr := g.Players; curr != nil && curr.Head.Player == p; curr = curr.Tail {
 		g.Players = curr.Tail
 	}
 
-    for curr := g.Players; curr.Tail != nil; curr = curr.Tail {
+	for curr := g.Players; curr.Tail != nil; curr = curr.Tail {
 		if curr.Tail.Head.Player == p && curr.Tail.Tail == nil {
 			curr.Tail = nil
 			break
@@ -187,13 +187,13 @@ func (g *Game) State() GameState {
 
 	for list := g.Players; list != nil; list = list.Tail {
 		listVal := list.Head
-        player := listVal.Player
-        hand := listVal.Hand
+		player := listVal.Player
+		hand := listVal.Hand
 		winState := WinState{Value: hand.Value()}
 		playerHand, dealerHand := hand.Value(), dealer.hand.Value()
-        
+
 		if !done {
-			winStates[player] =  append(winStates[player], winState) 
+			winStates[player] = append(winStates[player], winState)
 			continue
 		}
 		// game is done

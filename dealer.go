@@ -6,11 +6,10 @@ import (
 
 // Dealer is the Game Controller
 type Dealer struct {
-	deck     cards.Deck
-	hand     Hand
-	index    int
-	Game     *Game
-	Splitter PlayersList
+	deck  cards.Deck
+	hand  Hand
+	index int
+	Game  *Game
 }
 
 // NewDealer returns a Dealer when given an instantiated game.
@@ -52,7 +51,7 @@ func (d *Dealer) Hit() bool {
 		return false
 	}
 	listVal := d.Game.Current.Head
-    listVal.Hand.Draw(d.deck[d.index])
+	listVal.Hand.Draw(d.deck[d.index])
 	d.index++
 	return true
 }
@@ -94,6 +93,31 @@ func (d *Dealer) Double() bool {
 	return true
 }
 
+func (d *Dealer) Split() bool {
+	val := d.Game.Current.Head
+	if len(val.Hand) != 2 || !val.Hand.HasPair() {
+		return false
+	}
+	next := &ListVal{
+		Player: val.Player,
+		Hand:   Hand{val.Hand[1]},
+		Wager:  val.Wager,
+		Split:  true,
+	}
+
+	tail := d.Game.Current.Tail
+	d.Game.Current.Tail = &PlayersList{
+		Head: next,
+		Tail: tail,
+	}
+	d.Game.Current.Head.Hand = Hand{val.Hand[0]}
+	d.Game.Current.Head.Hand.Draw(d.deck[d.index])
+	d.index++
+	next.Hand.Draw(d.deck[d.index])
+	d.index++
+	return true
+}
+
 // Bet will change the Wager of the player to the specified amount.
 func (d *Dealer) Bet(listVal *ListVal, wager int) bool {
 	if listVal == nil {
@@ -107,24 +131,31 @@ func (d *Dealer) Bet(listVal *ListVal, wager int) bool {
 // TODO: splitting has ramifications for how collection works. Where the hands
 // that were split also have to be taken into account.
 func (d *Dealer) Collect() {
-	states := d.Game.State().Players
-	for curr := d.Game.Players; curr != nil; curr = curr.Tail {
-        listVal := curr.Head
-        for _, state := range states[listVal.Player] {
-            switch state.Type {
-            case Push:
-                continue
-            case Win:
-                listVal.Player.Winnings += curr.Head.Wager
-            case Lose:
-                listVal.Player.Winnings -= curr.Head.Wager
-            case Bust:
-                listVal.Player.Winnings -= curr.Head.Wager
-            default:
-                continue
-            }
 
-        }
+	states := d.Game.State().Players
+	var last *Player
+	var i int
+	for curr := d.Game.Players; curr != nil; curr = curr.Tail {
+		listVal := curr.Head
+		if last == listVal.Player {
+			i++
+		} else {
+			i = 0
+		}
+		state := states[listVal.Player][i]
+		switch state.Type {
+		case Push:
+			continue
+		case Win:
+			listVal.Player.Winnings += curr.Head.Wager
+		case Lose:
+			listVal.Player.Winnings -= curr.Head.Wager
+		case Bust:
+			listVal.Player.Winnings -= curr.Head.Wager
+		default:
+			continue
+		}
+
 	}
 }
 
@@ -151,7 +182,6 @@ func (d *Dealer) Evaluate() {
 }
 
 // Clear removes all cards from players and dealer's hands.
-// TODO: how does split effect clearing of cards?
 func (d *Dealer) Clear() {
 	curr := d.Game.Players
 	for curr != nil {
@@ -168,4 +198,15 @@ func (d *Dealer) ShowHand() Hand {
 		return d.hand
 	}
 	return d.hand[1:]
+}
+
+func (d *Dealer) ResetTable() {
+	curr := d.Game.Players
+	for curr.Tail != nil {
+		if curr.Tail.Head.Split {
+			curr.Tail = curr.Tail.Tail
+		} else {
+			curr = curr.Tail
+		}
+	}
 }

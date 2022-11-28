@@ -128,8 +128,6 @@ func (d *Dealer) Bet(listVal *ListVal, wager int) bool {
 }
 
 // Collect resolves all game Players Winnings based on the state of the game.
-// TODO: splitting has ramifications for how collection works. Where the hands
-// that were split also have to be taken into account.
 func (d *Dealer) Collect() {
 
 	states := d.Game.State().Players
@@ -170,8 +168,6 @@ func (d *Dealer) Play() {
 
 // Evaluate will change the game's current player if the current players hand value is
 // over 21.
-// TODO: Evaluate also might need to be reimagined as we have to make sure that the player
-// has no more hands to be evaluated before moving on to the next player
 func (d *Dealer) Evaluate() {
 	if d.Game.Current == nil {
 		return

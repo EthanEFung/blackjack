@@ -151,7 +151,7 @@ func main() {
 			clearTerminal()
 			printState(game.State(), game)
             
-			fmt.Print(game.Current.Head.Player.Name, ", (h)it or (s)tay: ")
+			fmt.Print(game.Current.Head.Player.Name, ", (h)it, (d)ouble, (su)rrender, (sp)lit or (s)tay: ")
 			option, err := readStdin(reader)
 			if err != nil {
 				fmt.Println("couldn't read your input")
